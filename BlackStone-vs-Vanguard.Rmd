@@ -1,0 +1,101 @@
+
+```{r}
+# Load necessary packages
+# Load necessary packages
+library(ggplot2)
+library(readr)
+
+# Read the CSV files
+blackstone_data <- read_csv("Blackstone ESG Portfolio.csv")
+vanguard_data <- read_csv("Vanguard Portfolio.csv")
+
+# Select relevant columns for comparison
+relevant_columns <- c("ESG Rating (sustainalytics)", "Implied Temperature Increase (°C)", "Scope 1 GHG (in tons)")
+
+# Subset data to include only relevant columns
+blackstone_subset <- blackstone_data[, relevant_columns]
+vanguard_first_six <- vanguard_data[1:6, relevant_columns]
+vanguard_last_six <- vanguard_data[(nrow(vanguard_data)-5):nrow(vanguard_data), relevant_columns]
+
+# Convert relevant columns to numeric
+blackstone_subset[, relevant_columns] <- lapply(blackstone_subset[, relevant_columns], as.numeric)
+vanguard_first_six[, relevant_columns] <- lapply(vanguard_first_six[, relevant_columns], as.numeric)
+vanguard_last_six[, relevant_columns] <- lapply(vanguard_last_six[, relevant_columns], as.numeric)
+
+# Calculate summary statistics
+blackstone_summary <- colMeans(blackstone_subset, na.rm = TRUE)
+vanguard_first_six_summary <- colMeans(vanguard_first_six, na.rm = TRUE)
+vanguard_last_six_summary <- colMeans(vanguard_last_six, na.rm = TRUE)
+
+# Combine summary statistics into a data frame
+summary_data <- data.frame(
+  Portfolio = c("Blackstone", "Vanguard First Six", "Vanguard Last Six"),
+  ESG_Rating = c(blackstone_summary[1], vanguard_first_six_summary[1], vanguard_last_six_summary[1]),
+  Temperature_Increase = c(blackstone_summary[2], vanguard_first_six_summary[2], vanguard_last_six_summary[2]),
+  Scope_1_GHG = c(blackstone_summary[3], vanguard_first_six_summary[3], vanguard_last_six_summary[3])
+)
+
+# Convert data from wide to long format
+summary_data_long <- tidyr::pivot_longer(summary_data, cols = c("ESG_Rating", "Temperature_Increase", "Scope_1_GHG"), names_to = "Metric", values_to = "Value")
+
+# Create box plot
+ggplot(summary_data_long, aes(x = Portfolio, y = Value, fill = Portfolio)) +
+  geom_boxplot() +
+  facet_wrap(~ Metric, scales = "free_y", ncol = 1) +
+  labs(title = "Portfolio Comparison",
+       x = "Portfolio",
+       y = "Value",
+       fill = "Portfolio") +
+  theme_minimal() +
+  theme(axis.text.x = element_text(angle = 45, hjust = 1))
+
+```
+
+```{r}
+# Load necessary packages
+# Load necessary packages
+library(ggplot2)
+library(readr)
+
+# Read the CSV files
+blackstone_data <- read_csv("Blackstone ESG Portfolio.csv")
+vanguard_data <- read_csv("Vanguard Portfolio.csv")
+
+# Select relevant columns for comparison
+relevant_columns <- c("ESG Rating (sustainalytics)", "Implied Temperature Increase (°C)", "Scope 1 GHG (in tons)")
+
+# Subset data to include only relevant columns
+blackstone_subset <- blackstone_data[, relevant_columns]
+vanguard_top_holdings <- vanguard_data[1:6, relevant_columns]
+vanguard_top_energy_holdings <- vanguard_data[(nrow(vanguard_data)-5):nrow(vanguard_data), relevant_columns]
+
+# Convert relevant columns to numeric
+blackstone_subset[, relevant_columns] <- lapply(blackstone_subset[, relevant_columns], as.numeric)
+vanguard_top_holdings[, relevant_columns] <- lapply(vanguard_top_holdings[, relevant_columns], as.numeric)
+vanguard_top_energy_holdings[, relevant_columns] <- lapply(vanguard_top_energy_holdings[, relevant_columns], as.numeric)
+
+# Convert data to long format
+blackstone_subset_long <- tidyr::pivot_longer(blackstone_subset, everything(), names_to = "Metric", values_to = "Value")
+vanguard_top_holdings_long <- tidyr::pivot_longer(vanguard_top_holdings, everything(), names_to = "Metric", values_to = "Value")
+vanguard_top_energy_holdings_long <- tidyr::pivot_longer(vanguard_top_energy_holdings, everything(), names_to = "Metric", values_to = "Value")
+
+# Combine data frames
+summary_data <- rbind(transform(blackstone_subset_long, Portfolio = "Blackstone"),
+                      transform(vanguard_top_energy_holdings_long, Portfolio = "Vanguard Top Energy Holdings"),
+                      transform(vanguard_top_holdings_long, Portfolio = "Vanguard Top Holdings"))
+
+# Create box plot
+ggplot(summary_data, aes(x = Portfolio, y = Value, fill = Portfolio)) +
+  geom_boxplot() +
+  facet_wrap(~ Metric, scales = "free_y", ncol = 1) +
+  labs(title = "Portfolio Comparison",
+       x = "Portfolio",
+       y = "Value",
+       fill = "Portfolio") +
+  theme_minimal() +
+  theme(axis.text.x = element_text(angle = 45, hjust = 1))
+
+
+
+```
+
